@@ -878,86 +878,100 @@ export default function App() {
       <div style={{ minHeight:"100vh", background:"var(--cream)", fontFamily:"'IBM Plex Mono',monospace" }}>
 
         {/* Header */}
-        <header className="scanline-wrap" style={{
-          borderBottom:"2px solid var(--ink)", background:"var(--ink)",
-          padding:"0 28px", position:"sticky", top:0, zIndex:100
-        }}>
-          <div style={{ maxWidth:960, margin:"0 auto" }}>
-            {/* Top bar */}
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 0" }}>
+        <header
+          className="scanline-wrap"
+          style={{
+            borderBottom:"2px solid var(--ink)",
+            background:"var(--ink)",
+            padding:"0 40px",
+            position:"sticky",
+            top:0,
+            zIndex:100
+          }}
+        >
+          {/* ✅ 去掉 maxWidth 限制 */}
+          <div style={{ width:"100%" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"16px 0" }}>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                {/* Logo mark */}
                 <div style={{ width:36, height:36, background:"var(--neon)", borderRadius:4, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                   <span style={{ fontSize:18, filter:"invert(1)" }}>⚡</span>
                 </div>
                 <div>
-                  <div style={{ fontSize:14, fontWeight:700, color:"var(--neon)", letterSpacing:"0.05em", lineHeight:1.2 }}>
+                  <div style={{ fontSize:16, fontWeight:700, color:"var(--neon)", letterSpacing:"0.05em" }}>
                     GLOBAL HR COMPLIANCE AGENT
                   </div>
-                  <div style={{ fontSize:10, color:"rgba(0,232,122,0.5)", letterSpacing:"0.15em" }}>
+                  <div style={{ fontSize:11, color:"rgba(0,232,122,0.5)", letterSpacing:"0.15em" }}>
                     全球HR合规查询助手 <span className="terminal-cursor" />
                   </div>
                 </div>
               </div>
-              <div style={{ fontSize:11, color:"rgba(0,232,122,0.4)", letterSpacing:"0.1em" }}>
+              <div style={{ fontSize:12, color:"rgba(0,232,122,0.4)", letterSpacing:"0.1em" }}>
                 🇨🇳 · 🇭🇰 · 🇸🇬 · 🇺🇸
               </div>
             </div>
 
-            {/* Tabs */}
-            <div style={{ display:"flex", gap:0, borderTop:"1px solid rgba(0,232,122,0.15)" }}>
+            <div style={{ display:"flex", borderTop:"1px solid rgba(0,232,122,0.15)" }}>
               {[
                 { key:"query", label:"政策查询", icon:"🔍" },
                 { key:"review", label:"材料初审", icon:"📑", isNew:true },
               ].map(t => (
                 <button key={t.key} onClick={()=>setTab(t.key)} style={{
-                  background:"none", border:"none",
+                  background:"none",
+                  border:"none",
                   borderBottom:`3px solid ${tab===t.key?"var(--neon)":"transparent"}`,
-                  padding:"11px 22px", cursor:"pointer",
-                  fontSize:13, fontFamily:"'IBM Plex Mono',monospace",
-                  display:"flex", alignItems:"center", gap:7,
+                  padding:"12px 30px",
+                  cursor:"pointer",
+                  fontSize:14,
                   color: tab===t.key?"var(--neon)":"rgba(0,232,122,0.4)",
-                  letterSpacing:"0.04em", transition:"all 0.15s",
+                  letterSpacing:"0.04em"
                 }}>
-                  <span>{t.icon}</span>
-                  <span>{t.label}</span>
-                  {t.isNew && (
-                    <span style={{ background:"var(--neon)", color:"var(--ink)", fontSize:9,
-                      borderRadius:3, padding:"1px 5px", fontWeight:700, letterSpacing:"0.08em" }}>
-                      NEW
-                    </span>
-                  )}
+                  {t.icon} {t.label}
                 </button>
               ))}
             </div>
           </div>
         </header>
 
-        {/* Main */}
-        <main style={{ maxWidth:960, margin:"0 auto", padding:"28px 24px 80px" }}>
-
-          {/* Compliance banner */}
+        {/* ✅ 主内容区改为接近全屏 */}
+        <main
+          style={{
+            width:"100%",
+            padding:"40px 60px 100px",
+          }}
+        >
           {showBanner && (
-            <div style={{ background:"white", border:"2px solid var(--cream-line)", borderLeft:`4px solid var(--amber)`,
-              borderRadius:"var(--radius-lg)", padding:"12px 16px", marginBottom:24,
-              display:"flex", alignItems:"flex-start", gap:10, boxShadow:"var(--shadow-sm)" }}>
-              <span style={{ fontSize:16, flexShrink:0 }}>🔒</span>
-              <div style={{ flex:1, fontSize:12, color:"var(--ink-mid)", lineHeight:1.7 }}>
-                <strong style={{ color:"var(--ink)" }}>合规声明：</strong>
+            <div style={{
+              background:"white",
+              border:"2px solid var(--cream-line)",
+              borderLeft:`4px solid var(--amber)`,
+              borderRadius:"var(--radius-lg)",
+              padding:"14px 18px",
+              marginBottom:30,
+              display:"flex",
+              alignItems:"flex-start",
+              gap:12
+            }}>
+              <span style={{ fontSize:16 }}>🔒</span>
+              <div style={{ flex:1, fontSize:13, lineHeight:1.7 }}>
+                <strong>合规声明：</strong>
                 本系统仅提供公开政策查询与材料初审参考，严禁自动登录或提交政府系统。所有结果须由人工确认后自行提交。
               </div>
-              <button onClick={()=>setShowBanner(false)}
-                style={{ background:"none", border:"none", color:"var(--ink-faint)", cursor:"pointer", fontSize:16, padding:"0 2px", flexShrink:0 }}>✕</button>
+              <button onClick={()=>setShowBanner(false)} style={{ border:"none", background:"none", cursor:"pointer" }}>✕</button>
             </div>
           )}
 
           {tab==="query" ? <PolicyQuery key="q" /> : <DocumentReview key="r" />}
         </main>
 
-        {/* Footer rule */}
-        <div style={{ borderTop:"2px solid var(--ink)", background:"var(--cream-dark)", padding:"14px 28px",
-          display:"flex", justifyContent:"space-between", alignItems:"center",
-          fontSize:10, color:"var(--ink-faint)", letterSpacing:"0.1em" }}>
+        {/* Footer */}
+        <div style={{
+          borderTop:"2px solid var(--ink)",
+          background:"var(--cream-dark)",
+          padding:"18px 60px",
+          display:"flex",
+          justifyContent:"space-between",
+          fontSize:12
+        }}>
           <span>GLOBAL HR COMPLIANCE AGENT · 合规边界：仅查询，不提交，不登录</span>
           <span style={{ color:"var(--neon-dim)", fontWeight:600 }}>⚡ POWERED BY CLAUDE</span>
         </div>
@@ -965,3 +979,4 @@ export default function App() {
     </>
   );
 }
+
