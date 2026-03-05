@@ -918,23 +918,28 @@ function PolicyQuery() {
 
   const submit = async () => {
     if (!question.trim()) return;
-    setLoading(true); setResult(MOCK_RESULTS[queryType.key]); setAiAnswer(""); setStep(4);
+    setLoading(true); setResult(null); setAiAnswer(""); setStep(4);
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system:QUERY_SYSTEM,
-          messages:[{ role:"user", content:`司法区：${jurisdiction.name} ${jurisdiction.flag}
+        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:2000, system:QUERY_SYSTEM,
+          messages:[{ role:"user", content:`司法区：${jurisdiction.name}
 查询类型：${queryType.label}
 问题：${question}
 
 【官方参考网站列表】
 ${(jurisdiction.allLinks?.[queryType.key] || []).map(l => `- ${l.label}：${l.url}`).join("\n")}
 
-请基于以上官方网站信息回答，并在回答中引用相关官网链接。` }] })
+请基于以上官方网站，详细回答用户问题。要求：
+1. 提供完整、详细的政策制度说明，包括具体规定、数字、流程、条件等
+2. 分段清晰，易于阅读
+3. 回答结尾单独列出本次回答所依据的官方网站来源（名称+URL）` }] })
       });
       const data = await res.json();
-      setAiAnswer(data.content?.map(b=>b.text||"").join("\n")||"");
-    } catch { setAiAnswer("（AI分析暂不可用，请参考上方基础政策摘要）"); }
+      const text = data.content?.map(b=>b.text||"").join("\n")||"";
+      setAiAnswer(text);
+      setResult(true);
+    } catch { setAiAnswer("（查询暂不可用，请稍后重试）"); setResult(true); }
     setLoading(false);
   };
 
@@ -953,7 +958,6 @@ ${(jurisdiction.allLinks?.[queryType.key] || []).map(l => `- ${l.label}：${l.ur
               <div className="jcard-accent" style={{ background: jurisdiction?.key===key?reg.color:"var(--cream-line)" }} />
               <div style={{ fontSize:20, fontWeight:800, color: jurisdiction?.key===key?reg.color:"var(--ink-light)", letterSpacing:"0.05em", fontFamily:"'IBM Plex Mono',monospace" }}>{reg.code}</div>
               <span style={{ fontSize:12, color:"var(--ink)", fontWeight:600 }}>{reg.name}</span>
-              <span style={{ fontSize:10, color:"var(--ink-faint)" }}>{reg.labour} · {reg.tax}</span>
             </button>
           ))}
         </div>
@@ -992,58 +996,480 @@ ${(jurisdiction.allLinks?.[queryType.key] || []).map(l => `- ${l.label}：${l.ur
         </div>
       )}
 
-      {step>=4 && result && (
+      {step>=4 && (
         <div className="section">
           <div className="step-label"><span className="step-num">04</span> 查询结果</div>
-          <div className="grid-2" style={{ marginBottom:12 }}>
-            <div className="card">
-              <div className="card-header">📋 政策摘要</div>
-              <p style={{ fontSize:13, color:"var(--ink)", lineHeight:1.8 }}>{result.summary}</p>
+
+          {/* Policy Info Card */}
+          <div className="card" style={{ marginBottom:12 }}>
+            <div className="card-header">
+              📋 政策信息
+              <span style={{ marginLeft:8, fontSize:10, color:"var(--ink-faint)", fontWeight:400, textTransform:"none", letterSpacing:0 }}>
+                {jurisdiction?.name} · {queryType?.label}
+              </span>
+              {loading && <span style={{ display:"inline-block", width:6, height:6, background:"var(--neon-dim)", borderRadius:"50%", marginLeft:"auto", animation:"blink 1s step-end infinite" }} />}
             </div>
-            <div className="card">
-              <div className="card-header">
-                🤖 AI 增强分析
-                {loading && <span style={{ display:"inline-block", width:6, height:6, background:"var(--neon-dim)", borderRadius:"50%", marginLeft:6, animation:"blink 1s step-end infinite" }} />}
+            {loading && !aiAnswer ? (
+              <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 0", color:"var(--ink-light)", fontSize:13 }}>
+                <span style={{ width:16, height:16, border:"2px solid var(--cream-line)", borderTop:"2px solid var(--neon-dim)", borderRadius:"50%", animation:"spin 0.8s linear infinite", display:"inline-block", flexShrink:0 }} />
+                正在从官方政策数据库检索详细信息，请稍候…
               </div>
-              {aiAnswer
-                ? <p style={{ fontSize:13, color:"var(--ink)", lineHeight:1.8 }}>{aiAnswer}</p>
-                : <p style={{ fontSize:13, color:"var(--ink-faint)", fontStyle:"italic" }}>正在生成分析…</p>}
-            </div>
-            <div className="card">
-              <div className="card-header">✅ 材料清单</div>
-              <ol style={{ listStyle:"none", padding:0 }}>
-                {result.checklist.map((item,i) => (
-                  <li key={i} style={{ display:"flex", gap:10, padding:"6px 0", borderBottom:"1px solid var(--cream-dark)", fontSize:13, color:"var(--ink)" }}>
-                    <span style={{ background:"var(--ink)", color:"var(--neon)", borderRadius:4, width:20, height:20,
-                      display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, flexShrink:0 }}>{i+1}</span>
-                    {item}
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <div className="card">
-              <div className="card-header">🔗 来源与注意事项</div>
-              <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11, color:"var(--ink-faint)", marginBottom:6 }}>官方机构 · {jurisdiction?.[queryType?.key]}</div>
-                <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                  {(jurisdiction?.allLinks?.[queryType?.key] || []).map((l,i) => (
-                    <a key={i} href={l.url} target="_blank" rel="noreferrer"
-                      style={{ fontSize:11, color:"var(--blue)", display:"flex", alignItems:"flex-start", gap:5, lineHeight:1.5 }}>
-                      <span style={{ flexShrink:0, marginTop:1 }}>↗</span>
-                      <span style={{ wordBreak:"break-all" }}>{l.label}</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-              <div className="warn-box">⚠️ {result.notes}</div>
-              <div style={{ fontSize:11, color:"var(--ink-faint)", marginTop:8 }}>更新时间：{today}</div>
+            ) : (
+              <div style={{ fontSize:13, color:"var(--ink)", lineHeight:2, whiteSpace:"pre-wrap" }}>{aiAnswer}</div>
+            )}
+          </div>
+
+          {/* Source Links Card */}
+          <div className="card" style={{ marginBottom:12 }}>
+            <div className="card-header">🔗 网站来源</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:0 }}>
+              {(jurisdiction?.allLinks?.[queryType?.key] || []).map((l,i) => (
+                <a key={i} href={l.url} target="_blank" rel="noreferrer"
+                  style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 0",
+                    borderBottom: i < (jurisdiction?.allLinks?.[queryType?.key]||[]).length-1 ? "1px solid var(--cream-dark)" : "none",
+                    textDecoration:"none", transition:"background 0.1s" }}>
+                  <span style={{ width:24, height:24, background:"var(--ink)", color:"var(--neon)", borderRadius:4,
+                    display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, flexShrink:0 }}>↗</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:13, color:"var(--ink)", fontWeight:500, marginBottom:1 }}>{l.label}</div>
+                    <div style={{ fontSize:11, color:"var(--blue)", wordBreak:"break-all", opacity:0.8 }}>{l.url}</div>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
+
           <div className="compliance-box">
             <strong>⚖️ 合规提醒</strong>
-            <p style={{ marginTop:6 }}>本系统仅提供公开政策查询，严禁自动登录或提交。所有结果仅供参考，具体申报须由<strong>人工确认</strong>后自行提交。</p>
+            <p style={{ marginTop:6 }}>本系统仅提供公开政策查询，严禁自动登录或提交。所有结果仅供参考，具体申报须由<strong>人工确认</strong>后自行提交，并以官网最新公告为准。</p>
           </div>
           <button className="btn-secondary" onClick={reset} style={{ marginTop:12 }}>↩ 重新查询</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ─── Tax Engine (2026 FY) ─────────────────────────────────────────────────────
+
+const TaxEngine = {
+  // 中国内陆 — 综合所得，起征点6万/年，7档累进
+  CN: {
+    currency: "CNY", symbol: "¥",
+    fields: [
+      { key:"income",  label:"税前年度总薪酬 (CNY)",        placeholder:"如：300000" },
+      { key:"social",  label:"社保公积金扣除 (CNY/年)",       placeholder:"如：30000，不确定可填0" },
+      { key:"special", label:"其他专项附加扣除 (CNY/年)",     placeholder:"如：子女教育、房贷利息等" },
+    ],
+    notes: [
+      "起征点：60,000 元/年（5,000元/月）",
+      "应纳税所得额 = 年收入 − 60,000 − 社保公积金 − 专项附加扣除",
+      "税率：3%–45% 共7档累进税率",
+      "以上为估算，实际以个税APP汇算清缴结果为准",
+    ],
+    calc: (vals) => {
+      const taxable = Math.max(0, (vals.income||0) - 60000 - (vals.social||0) - (vals.special||0));
+      const rules = [
+        {lim:36000,   r:0.03, q:0},
+        {lim:144000,  r:0.10, q:2520},
+        {lim:300000,  r:0.20, q:16920},
+        {lim:420000,  r:0.25, q:31920},
+        {lim:660000,  r:0.30, q:52920},
+        {lim:960000,  r:0.35, q:85920},
+        {lim:Infinity,r:0.45, q:181920},
+      ];
+      const band = rules.find(x => taxable <= x.lim);
+      const tax = Math.max(0, taxable * band.r - band.q);
+      return { tax, taxable, takeHome: (vals.income||0) - tax - (vals.social||0) };
+    },
+  },
+
+  // 香港 — 薪俸税，累进 or 标准税率取低
+  HK: {
+    currency: "HKD", symbol: "HK$",
+    fields: [
+      { key:"income",  label:"税前年薪 (HKD)",                placeholder:"如：600000" },
+      { key:"mpf",     label:"强积金MPF供款 (HKD/年)",         placeholder:"如：18000（上限18,000）" },
+      { key:"special", label:"其他免税额/扣除 (HKD/年)",       placeholder:"如：子女免税额132000/名" },
+    ],
+    notes: [
+      "基本免税额：132,000 HKD（2025/26年度）",
+      "累进税率：2% / 6% / 10% / 14% / 17%（每级50,000起）",
+      "标准税率：15%（年收入≤5,000,000）或 16%",
+      "取累进税与标准税较低者",
+      "MPF强积金上限：每月18,000 × 5% = 每年最多10,800雇员供款",
+    ],
+    calc: (vals) => {
+      const net = Math.max(0, (vals.income||0) - 132000 - (vals.mpf||0) - (vals.special||0));
+      let prog = 0, rem = net;
+      const progRates = [0.02, 0.06, 0.10, 0.14, 0.17];
+      for (let i = 0; i < 4; i++) {
+        const chunk = Math.min(rem, 50000); prog += chunk * progRates[i]; rem -= chunk;
+        if (rem <= 0) break;
+      }
+      if (rem > 0) prog += rem * 0.17;
+      const stdRate = (vals.income||0) > 5000000 ? 0.16 : 0.15;
+      const tax = Math.min(prog, (vals.income||0) * stdRate);
+      return { tax, taxable: net, takeHome: (vals.income||0) - tax - (vals.mpf||0) };
+    },
+  },
+
+  // 新加坡 — 居民个税，累进，无起征点（20k以下0%）
+  SG: {
+    currency: "SGD", symbol: "S$",
+    fields: [
+      { key:"income",  label:"税前年收入 (SGD)",               placeholder:"如：120000" },
+      { key:"cpf",     label:"CPF公积金供款 (SGD/年)",          placeholder:"如：37740（55岁以下约20%）" },
+      { key:"relief",  label:"个人所得税减免额 (SGD/年)",       placeholder:"如：薪亲假、技能培训等" },
+    ],
+    notes: [
+      "20,000 SGD以下：0% 免税",
+      "累进税率：0%–24%（2024课税年起最高24%）",
+      "CPF供款：雇员部分（55岁以下约20%），不计入应税收入",
+      "新加坡无遗产税、资本利得税",
+      "外籍人士（非居民）统一税率15%或累进税率取高",
+    ],
+    calc: (vals) => {
+      const taxable = Math.max(0, (vals.income||0) - (vals.cpf||0) - (vals.relief||0));
+      const bands = [
+        {from:0,      to:20000,  base:0,     rate:0},
+        {from:20000,  to:30000,  base:0,     rate:0.02},
+        {from:30000,  to:40000,  base:200,   rate:0.035},
+        {from:40000,  to:80000,  base:550,   rate:0.07},
+        {from:80000,  to:120000, base:3350,  rate:0.115},
+        {from:120000, to:160000, base:7950,  rate:0.15},
+        {from:160000, to:200000, base:13950, rate:0.18},
+        {from:200000, to:240000, base:21150, rate:0.19},
+        {from:240000, to:280000, base:28750, rate:0.195},
+        {from:280000, to:320000, base:36550, rate:0.20},
+        {from:320000, to:500000, base:44550, rate:0.22},
+        {from:500000, to:1000000,base:84150, rate:0.23},
+        {from:1000000,to:Infinity,base:199150,rate:0.24},
+      ];
+      let tax = 0;
+      for (let i = bands.length-1; i >= 0; i--) {
+        if (taxable > bands[i].from) {
+          tax = bands[i].base + (taxable - bands[i].from) * bands[i].rate;
+          break;
+        }
+      }
+      return { tax, taxable, takeHome: (vals.income||0) - tax - (vals.cpf||0) };
+    },
+  },
+
+  // 美国 — 联邦税，单身报税2026，标准扣除16,550
+  US: {
+    currency: "USD", symbol: "$",
+    fields: [
+      { key:"income",    label:"年度总收入 Gross Income (USD)",  placeholder:"如：120000" },
+      { key:"standard",  label:"标准扣除额 (USD，2026单身约16,550)", placeholder:"留空则自动使用16,550" },
+      { key:"other",     label:"其他扣除 401k/IRA 等 (USD/年)", placeholder:"如：23000（401k上限）" },
+    ],
+    notes: [
+      "2026年标准扣除（单身）：约16,550 USD",
+      "联邦税率：10% / 12% / 22% / 24% / 32% / 35% / 37%",
+      "不含州税（各州税率0%–13.3%不等）",
+      "不含FICA社保税（7.65%）",
+      "已婚联合报税扣除额约33,100 USD",
+    ],
+    calc: (vals) => {
+      const stdDed = (vals.standard||0) > 0 ? (vals.standard||0) : 16550;
+      const taxable = Math.max(0, (vals.income||0) - stdDed - (vals.other||0));
+      const brackets = [
+        {from:0,       to:11925,  rate:0.10},
+        {from:11925,   to:48475,  rate:0.12},
+        {from:48475,   to:103350, rate:0.22},
+        {from:103350,  to:197300, rate:0.24},
+        {from:197300,  to:250525, rate:0.32},
+        {from:250525,  to:626350, rate:0.35},
+        {from:626350,  to:Infinity,rate:0.37},
+      ];
+      let tax = 0;
+      brackets.forEach(b => {
+        if (taxable > b.from) tax += (Math.min(taxable, b.to) - b.from) * b.rate;
+      });
+      return { tax, taxable, takeHome: (vals.income||0) - tax };
+    },
+  },
+
+  // 加拿大 — 联邦税2026，基础个人免税额约16,129 CAD
+  CA: {
+    currency: "CAD", symbol: "CA$",
+    fields: [
+      { key:"income",  label:"年度总收入 (CAD)",                placeholder:"如：100000" },
+      { key:"rrsp",    label:"RRSP退休储蓄扣除 (CAD/年)",       placeholder:"如：18000（上限为收入18%）" },
+      { key:"other",   label:"其他联邦扣除额 (CAD/年)",         placeholder:"如：工会会费、托育费等" },
+    ],
+    notes: [
+      "2026年基础个人免税额（BPA）：约16,129 CAD",
+      "联邦税率：15% / 20.5% / 26% / 29% / 33%",
+      "不含省税（各省税率约4%–21%不等）",
+      "RRSP上限：收入×18%，最高31,560 CAD (2025)",
+      "以上仅为联邦税估算",
+    ],
+    calc: (vals) => {
+      const bpa = 16129;
+      const taxable = Math.max(0, (vals.income||0) - bpa - (vals.rrsp||0) - (vals.other||0));
+      const brackets = [
+        {from:0,       to:57375,  rate:0.15},
+        {from:57375,   to:114750, rate:0.205},
+        {from:114750,  to:158519, rate:0.26},
+        {from:158519,  to:220000, rate:0.29},
+        {from:220000,  to:Infinity,rate:0.33},
+      ];
+      let tax = 0;
+      brackets.forEach(b => {
+        if (taxable > b.from) tax += (Math.min(taxable, b.to) - b.from) * b.rate;
+      });
+      const bpaTaxCredit = bpa * 0.15;
+      const finalTax = Math.max(0, tax - bpaTaxCredit);
+      return { tax: finalTax, taxable, takeHome: (vals.income||0) - finalTax - (vals.rrsp||0) };
+    },
+  },
+
+  // 日本 — 所得税+复兴特别税(2.1%)，基础控除48万日元
+  JP: {
+    currency: "JPY", symbol: "¥",
+    fields: [
+      { key:"income",    label:"年度给与収入 (JPY / 日元)",       placeholder:"如：6000000" },
+      { key:"social",    label:"社会保険料控除 (JPY/年)",          placeholder:"如：900000（约收入15%）" },
+      { key:"other",     label:"その他控除 (JPY/年)",             placeholder:"如：配偶者控除、扶養控除等" },
+    ],
+    notes: [
+      "基礎控除：480,000 JPY（合计所得2,400万以下）",
+      "给与所得控除：按收入阶梯自动扣除（55万~195万）",
+      "税率：5%–45% 共7档，另加2.1%复兴特别税",
+      "不含住民税（约10%，地方税）",
+      "外国人居住满1年起视为居住者，适用相同税率",
+    ],
+    calc: (vals) => {
+      const grossIncome = vals.income || 0;
+      // 给与所得控除 (employment income deduction)
+      let empDed = 0;
+      if      (grossIncome <= 1625000)  empDed = 550000;
+      else if (grossIncome <= 1800000)  empDed = grossIncome * 0.4 - 100000;
+      else if (grossIncome <= 3600000)  empDed = grossIncome * 0.3 + 80000;
+      else if (grossIncome <= 6600000)  empDed = grossIncome * 0.2 + 440000;
+      else if (grossIncome <= 8500000)  empDed = grossIncome * 0.1 + 1100000;
+      else                              empDed = 1950000;
+      const basicDed = 480000;
+      const taxable = Math.max(0, grossIncome - empDed - basicDed - (vals.social||0) - (vals.other||0));
+      const brackets = [
+        {from:0,        to:1950000,  rate:0.05, ded:0},
+        {from:1950000,  to:3300000,  rate:0.10, ded:97500},
+        {from:3300000,  to:6950000,  rate:0.20, ded:427500},
+        {from:6950000,  to:9000000,  rate:0.23, ded:636000},
+        {from:9000000,  to:18000000, rate:0.33, ded:1536000},
+        {from:18000000, to:40000000, rate:0.40, ded:2796000},
+        {from:40000000, to:Infinity, rate:0.45, ded:4796000},
+      ];
+      let incomeTax = 0;
+      for (let i = brackets.length-1; i >= 0; i--) {
+        if (taxable > brackets[i].from) {
+          incomeTax = taxable * brackets[i].rate - brackets[i].ded;
+          break;
+        }
+      }
+      const totalTax = Math.max(0, incomeTax) * 1.021; // 复兴特别税
+      return { tax: totalTax, taxable, takeHome: grossIncome - totalTax - (vals.social||0) };
+    },
+  },
+};
+
+// ─── Tax Calculator Component ─────────────────────────────────────────────────
+
+const TAX_JURISDICTIONS = [
+  { id:"1", name:"中国内陆", code:"CN", engineKey:"CN" },
+  { id:"2", name:"中国香港", code:"HK", engineKey:"HK" },
+  { id:"3", name:"新加坡",   code:"SG", engineKey:"SG" },
+  { id:"4", name:"美国",     code:"US", engineKey:"US" },
+  { id:"5", name:"加拿大",   code:"CA", engineKey:"CA" },
+  { id:"6", name:"日本",     code:"JP", engineKey:"JP" },
+];
+
+function fmt(n, sym) {
+  if (!n && n !== 0) return "—";
+  const abs = Math.abs(Math.round(n));
+  return sym + abs.toLocaleString("en-US");
+}
+
+function BarChart({ items }) {
+  const max = Math.max(...items.map(x => x.val), 1);
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4 }}>
+      {items.map((item, i) => (
+        <div key={i}>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"var(--ink-light)", marginBottom:3 }}>
+            <span>{item.label}</span>
+            <span style={{ fontWeight:600, color: item.accent || "var(--ink)" }}>{item.display}</span>
+          </div>
+          <div style={{ height:8, background:"var(--cream-dark)", borderRadius:4, overflow:"hidden" }}>
+            <div style={{
+              height:"100%", borderRadius:4,
+              width: `${Math.min(100, (item.val / max) * 100)}%`,
+              background: item.accent || "var(--ink-faint)",
+              transition:"width 0.6s ease",
+            }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TaxCalculator() {
+  const [jId, setJId] = useState("1");
+  const [vals, setVals] = useState({});
+  const [result, setResult] = useState(null);
+  const [calcDone, setCalcDone] = useState(false);
+
+  const j = TAX_JURISDICTIONS.find(x => x.id === jId);
+  const engine = TaxEngine[j.engineKey];
+
+  const setVal = (key, v) => setVals(prev => ({ ...prev, [key]: parseFloat(v) || 0 }));
+
+  const handleCalc = () => {
+    const r = engine.calc(vals);
+    setResult(r);
+    setCalcDone(true);
+  };
+
+  const handleReset = () => { setVals({}); setResult(null); setCalcDone(false); };
+
+  const switchJ = (id) => { setJId(id); setVals({}); setResult(null); setCalcDone(false); };
+
+  const effRate = result && (vals[engine.fields[0].key]||0) > 0
+    ? ((result.tax / (vals[engine.fields[0].key]||1)) * 100).toFixed(1)
+    : null;
+
+  return (
+    <div style={{ animation:"fadeUp 0.3s ease", maxWidth:800, margin:"0 auto" }}>
+
+      {/* Jurisdiction selector */}
+      <div className="card" style={{ marginBottom:16 }}>
+        <div className="card-header">🌏 选择计税司法区</div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+          {TAX_JURISDICTIONS.map(tj => (
+            <button key={tj.id} onClick={() => switchJ(tj.id)} style={{
+              padding:"12px 8px", borderRadius:"var(--radius)", border:"2px solid",
+              borderColor: jId===tj.id ? "var(--neon-dim)" : "var(--cream-line)",
+              background: jId===tj.id ? "var(--ink)" : "white",
+              color: jId===tj.id ? "var(--neon)" : "var(--ink-mid)",
+              cursor:"pointer", transition:"all 0.15s",
+              fontFamily:"'IBM Plex Mono',monospace", fontWeight:600, fontSize:13,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:3,
+              boxShadow: jId===tj.id ? "0 0 0 3px var(--neon-ghost)" : "var(--shadow-sm)",
+            }}>
+              <span style={{ fontSize:16, fontWeight:800 }}>{tj.code}</span>
+              <span style={{ fontSize:11, opacity:0.8 }}>{tj.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Input fields — each jurisdiction has unique fields */}
+      <div className="card" style={{ marginBottom:16 }}>
+        <div className="card-header">
+          💰 输入薪酬信息
+          <span style={{ marginLeft:8, fontSize:10, color:"var(--ink-faint)", fontWeight:400, textTransform:"none", letterSpacing:0 }}>
+            货币：{engine.currency}
+          </span>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+          {engine.fields.map(f => (
+            <div key={f.key}>
+              <div className="field-label">{f.label}</div>
+              <input
+                type="number" min="0"
+                value={vals[f.key] || ""}
+                onChange={e => setVal(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                style={{ fontFamily:"'IBM Plex Mono',monospace" }}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Jurisdiction-specific notes */}
+        <div style={{ marginTop:16, padding:"12px 14px", background:"var(--cream-dark)",
+          border:"1.5px solid var(--cream-line)", borderRadius:"var(--radius)", fontSize:11,
+          color:"var(--ink-light)", lineHeight:1.8 }}>
+          <div style={{ fontWeight:700, color:"var(--ink)", marginBottom:6, fontSize:11, letterSpacing:"0.08em" }}>
+            📌 {j.name} 计税规则说明
+          </div>
+          {engine.notes.map((n,i) => (
+            <div key={i} style={{ display:"flex", gap:6 }}>
+              <span style={{ color:"var(--neon-dim)", flexShrink:0 }}>·</span>
+              <span>{n}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display:"flex", gap:10, marginTop:16 }}>
+          <button className="btn-primary" onClick={handleCalc}
+            style={{ flex:1, justifyContent:"center", fontSize:14, padding:"13px" }}>
+            🧮 计算预估个税
+          </button>
+          {calcDone && (
+            <button className="btn-secondary" onClick={handleReset}>
+              ↺ 重置
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Result panel */}
+      {result && (
+        <div style={{ animation:"fadeUp 0.35s ease" }}>
+          <div className="card">
+            <div className="card-header">📊 估算结果
+              <span style={{ marginLeft:8, fontSize:10, color:"var(--ink-faint)", fontWeight:400, textTransform:"none", letterSpacing:0 }}>
+                {j.name} · {engine.currency}
+              </span>
+            </div>
+
+            {/* Big numbers */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:20 }}>
+              {[
+                { label:"预估年纳税额", val: fmt(result.tax, engine.symbol), sub: `月均 ${fmt(result.tax/12, engine.symbol)}`, accent:"var(--rust)" },
+                { label:"税后到手薪资", val: fmt(result.takeHome, engine.symbol), sub: `月均 ${fmt(result.takeHome/12, engine.symbol)}`, accent:"var(--neon-dim)" },
+                { label:"综合税率",     val: effRate ? effRate+"%" : "—", sub: "应纳税 / 税前收入", accent:"var(--amber)" },
+              ].map((item,i) => (
+                <div key={i} style={{ background:"var(--cream-dark)", borderRadius:"var(--radius)", padding:"14px 12px",
+                  border:"1.5px solid var(--cream-line)", textAlign:"center" }}>
+                  <div style={{ fontSize:10, color:"var(--ink-light)", letterSpacing:"0.08em", marginBottom:6, fontWeight:600 }}>
+                    {item.label}
+                  </div>
+                  <div style={{ fontSize:18, fontWeight:800, color:item.accent, fontFamily:"'IBM Plex Mono',monospace", lineHeight:1.2 }}>
+                    {item.val}
+                  </div>
+                  <div style={{ fontSize:10, color:"var(--ink-faint)", marginTop:4 }}>{item.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bar chart breakdown */}
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:11, color:"var(--ink-light)", fontWeight:600, letterSpacing:"0.08em", marginBottom:10 }}>
+                收入构成分解
+              </div>
+              <BarChart items={[
+                { label:"税前总收入", val: vals[engine.fields[0].key]||0, display: fmt(vals[engine.fields[0].key]||0, engine.symbol), accent:"var(--ink-light)" },
+                { label:"预估纳税额", val: result.tax, display: fmt(result.tax, engine.symbol), accent:"var(--rust)" },
+                ...(engine.fields[1] && (vals[engine.fields[1].key]||0) > 0 ? [
+                  { label: engine.fields[1].label.split(" (")[0], val: vals[engine.fields[1].key]||0, display: fmt(vals[engine.fields[1].key]||0, engine.symbol), accent:"var(--amber)" }
+                ] : []),
+                { label:"税后到手", val: result.takeHome, display: fmt(result.takeHome, engine.symbol), accent:"var(--neon-dim)" },
+              ]} />
+            </div>
+
+            {/* Disclaimer */}
+            <div style={{ padding:"10px 12px", background:"rgba(212,134,10,0.07)", border:"1.5px solid rgba(212,134,10,0.2)",
+              borderRadius:"var(--radius)", fontSize:11, color:"var(--amber)", lineHeight:1.7 }}>
+              ⚠️ 本计算结果为估算，仅供参考。实际税额以官方申报为准，建议咨询注册税务师或会计师确认。
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1091,7 +1517,8 @@ export default function App() {
             {/* Tabs */}
             <div style={{ display:"flex", gap:0, borderTop:"1px solid rgba(0,232,122,0.15)" }}>
               {[
-                { key:"query", label:"政策查询", icon:"🔍" },
+                { key:"query",  label:"政策查询", icon:"🔍" },
+                { key:"tax",    label:"个税计算", icon:"🧮" },
                 { key:"review", label:"材料初审", icon:"📑", isNew:true },
               ].map(t => (
                 <button key={t.key} onClick={()=>setTab(t.key)} style={{
@@ -1121,7 +1548,7 @@ export default function App() {
         <main style={{ maxWidth:"100%", margin:"0 auto", padding:"28px 40px 80px" }}>
 
           {/* Compliance banner */}
-          {showBanner && (
+          {showBanner && tab !== "tax" && (
             <div style={{ background:"white", border:"2px solid var(--cream-line)", borderLeft:`4px solid var(--amber)`,
               borderRadius:"var(--radius-lg)", padding:"12px 16px", marginBottom:24,
               display:"flex", alignItems:"flex-start", gap:10, boxShadow:"var(--shadow-sm)" }}>
@@ -1135,7 +1562,9 @@ export default function App() {
             </div>
           )}
 
-          {tab==="query" ? <PolicyQuery key="q" /> : <DocumentReview key="r" />}
+          {tab==="query"  && <PolicyQuery key="q" />}
+          {tab==="tax"    && <TaxCalculator key="t" />}
+          {tab==="review" && <DocumentReview key="r" />}
         </main>
 
         {/* Footer rule */}
@@ -1149,6 +1578,3 @@ export default function App() {
     </>
   );
 }
-
-
-
