@@ -325,24 +325,181 @@ const css = `
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const REGISTRY = {
-  "1": { name: "中国内陆", flag: "🇨🇳", labour: "人社部", tax: "税务总局", visa: "出入境管理局",
-    links: { labour: "http://www.mohrss.gov.cn/", tax: "http://www.chinatax.gov.cn/", visa: "https://www.nia.gov.cn/" },
-    color: "#C84B2A" },
-  "2": { name: "中国香港", flag: "🇭🇰", labour: "劳工处", tax: "税务局", visa: "入境事务处",
-    links: { labour: "https://www.labour.gov.hk/", tax: "https://www.ird.gov.hk/", visa: "https://www.immd.gov.hk/" },
-    color: "#8B1A2A" },
-  "3": { name: "新加坡", flag: "🇸🇬", labour: "MOM", tax: "IRAS", visa: "MOM",
-    links: { labour: "https://www.mom.gov.sg/", tax: "https://www.iras.gov.sg/", visa: "https://www.mom.gov.sg/passes-and-permits" },
-    color: "#B02020" },
-  "4": { name: "美国", flag: "🇺🇸", labour: "DOL", tax: "IRS", visa: "USCIS",
-    links: { labour: "https://www.dol.gov/", tax: "https://www.irs.gov/", visa: "https://www.uscis.gov/" },
-    color: "#2A4A8A" },
-  "5": { name: "加拿大", flag: "🇨🇦", labour: "ESDC", tax: "CRA", visa: "IRCC",
-    links: { labour: "https://www.canada.ca/en/employment-social-development.html", tax: "https://www.canada.ca/en/revenue-agency.html", visa: "https://www.canada.ca/en/immigration-refugees-citizenship.html" },
-    color: "#C8001A" },
-  "6": { name: "日本", flag: "🇯🇵", labour: "厚生労働省", tax: "国税庁", visa: "出入国在留管理庁",
-    links: { labour: "https://www.mhlw.go.jp/", tax: "https://www.nta.go.jp/", visa: "https://www.moj.go.jp/isa/" },
-    color: "#BC002D" },
+  "1": {
+    name: "中国内陆", flag: "🇨🇳", code: "CN", labour: "人社部", tax: "税务总局", visa: "外交部领事司",
+    color: "#C84B2A",
+    // 主链接（用于显示）
+    links: {
+      labour: "http://www.mohrss.gov.cn/",
+      tax:    "https://etax.chinatax.gov.cn/",
+      visa:   "https://cova.mfa.gov.cn/",
+    },
+    // 完整官网列表（注入 AI 上下文）
+    allLinks: {
+      labour: [
+        { label: "人力资源和社会保障部（人社部）",         url: "http://www.mohrss.gov.cn/" },
+        { label: "全国人社政务服务平台（12333）",           url: "https://www.12333.gov.cn/" },
+        { label: "中华人民共和国劳动法（人大网）",          url: "http://www.npc.gov.cn/zgrdw/npc/xinwen/2019-01/07/content_2070261.htm" },
+        { label: "天津市人社局",                            url: "https://hrss.tj.gov.cn/" },
+        { label: "深圳市人社局",                            url: "http://hrss.sz.gov.cn/" },
+      ],
+      tax: [
+        { label: "自然人电子税务局",                        url: "https://etax.chinatax.gov.cn/" },
+        { label: "国家税务总局（总局官网）",                url: "http://www.chinatax.gov.cn/" },
+        { label: "国家税务总局上海市税务局",               url: "https://shanghai.chinatax.gov.cn/" },
+        { label: "国家税务总局上海电子税务局",             url: "https://etax.shanghai.chinatax.gov.cn/" },
+        { label: "个人所得税法（人大网）",                  url: "http://www.npc.gov.cn/zgrdw/npc/xinwen/2011-07/01/content_1662341_6.htm" },
+      ],
+      visa: [
+        { label: "中国签证在线填表系统（COVA）",            url: "https://cova.mfa.gov.cn/" },
+        { label: "中国领事服务网（来华签证）",              url: "https://cs.mfa.gov.cn/wgrlh/lhqz/" },
+        { label: "中国签证在线办理（领事服务）",            url: "http://consular.mfa.gov.cn/VISA/" },
+        { label: "中国签证申请服务中心（海外申请）",        url: "https://www.visaforchina.cn/" },
+        { label: "国家移民管理局（来华/出入境）",           url: "https://www.nia.gov.cn/" },
+      ],
+    },
+  },
+  "2": {
+    name: "中国香港", flag: "🇭🇰", code: "HK", labour: "劳工处", tax: "税务局（IRD）", visa: "入境事务处",
+    color: "#8B1A2A",
+    links: {
+      labour: "https://www.labour.gov.hk/",
+      tax:    "https://www.ird.gov.hk/",
+      visa:   "https://www.immd.gov.hk/",
+    },
+    allLinks: {
+      labour: [
+        { label: "香港劳工处（Labour Department）",         url: "https://www.labour.gov.hk/" },
+        { label: "劳资关系专题网站",                        url: "https://www.lr.labour.gov.hk/" },
+        { label: "香港政府一站通 – 劳工法例",              url: "https://www.gov.hk/tc/residents/employment/labour/" },
+      ],
+      tax: [
+        { label: "税务局（Inland Revenue Department）",     url: "https://www.ird.gov.hk/" },
+        { label: "eTAX 税务易平台",                         url: "https://etax.ird.gov.hk/" },
+        { label: "政府一站通 – 税务服务",                   url: "https://www.gov.hk/tc/residents/taxes/" },
+      ],
+      visa: [
+        { label: "香港入境事务处",                          url: "https://www.immd.gov.hk/" },
+        { label: "电子化签证申请服务（eVisa）",             url: "https://www.immd.gov.hk/hks/evisaonline.html" },
+        { label: "一般签证要求（GovHK）",                   url: "https://www.gov.hk/tc/nonresidents/visarequire/" },
+      ],
+    },
+  },
+  "3": {
+    name: "新加坡", flag: "🇸🇬", code: "SG", labour: "MOM", tax: "IRAS", visa: "ICA",
+    color: "#B02020",
+    links: {
+      labour: "https://www.mom.gov.sg/",
+      tax:    "https://www.iras.gov.sg/",
+      visa:   "https://www.ica.gov.sg/",
+    },
+    allLinks: {
+      labour: [
+        { label: "Ministry of Manpower (MOM)",              url: "https://www.mom.gov.sg/" },
+        { label: "雇佣法令指南（MOM 中文）",                url: "https://www.mom.gov.sg/-/media/mom/documents/employment-practices/workright/workright-guideemployment-laws-mandarin.pdf" },
+        { label: "Employment Act（雇佣法）",                url: "https://www.mom.gov.sg/employment-practices/employment-act" },
+      ],
+      tax: [
+        { label: "Inland Revenue Authority of Singapore (IRAS)", url: "https://www.iras.gov.sg/" },
+        { label: "个人所得税电子申报（myTax Portal）",     url: "https://www.iras.gov.sg/taxes/individual-income-tax/basics-of-individual-income-tax/understanding-myincome-tax-filing/e-filing-your-income-tax-return" },
+        { label: "个人所得税基础说明",                     url: "https://www.iras.gov.sg/taxes/individual-income-tax" },
+      ],
+      visa: [
+        { label: "Immigration & Checkpoints Authority (ICA)", url: "https://www.ica.gov.sg/" },
+        { label: "签证要求查询（ICA）",                    url: "https://www.ica.gov.sg/enter-transit-depart/entering-singapore/visa_requirements" },
+        { label: "工作准证（EP/SP/WP）– MOM",              url: "https://www.mom.gov.sg/passes-and-permits" },
+      ],
+    },
+  },
+  "4": {
+    name: "美国", flag: "🇺🇸", code: "US", labour: "DOL", tax: "IRS", visa: "国务院/USCIS",
+    color: "#2A4A8A",
+    links: {
+      labour: "https://www.dol.gov/",
+      tax:    "https://www.irs.gov/",
+      visa:   "https://travel.state.gov/content/travel/en/us-visas.html",
+    },
+    allLinks: {
+      labour: [
+        { label: "U.S. Department of Labor (DOL)",          url: "https://www.dol.gov/" },
+        { label: "National Labor Relations Board (NLRB)",   url: "https://www.nlrb.gov/" },
+        { label: "Worker.gov（劳工权益综合入口）",          url: "https://www.worker.gov/" },
+        { label: "USCIS – 雇主合规",                        url: "https://www.uscis.gov/employers" },
+      ],
+      tax: [
+        { label: "Internal Revenue Service (IRS)",          url: "https://www.irs.gov/" },
+        { label: "如何报税（IRS 中文指南）",                url: "https://www.irs.gov/zh-hans/filing/individuals/how-to-file" },
+        { label: "个人报税信息中心（IRS）",                 url: "https://www.irs.gov/individuals" },
+      ],
+      visa: [
+        { label: "美国国务院签证官网",                      url: "https://travel.state.gov/content/travel/en/us-visas.html" },
+        { label: "DS-160 在线申请系统",                     url: "https://ceac.state.gov/genniv/" },
+        { label: "USCIS（移民与公民服务）",                 url: "https://www.uscis.gov/" },
+        { label: "美国驻华使领馆签证信息",                  url: "https://china.usembassy-china.org.cn/zh/visas-zh/" },
+      ],
+    },
+  },
+  "5": {
+    name: "加拿大", flag: "🇨🇦", code: "CA", labour: "ESDC", tax: "CRA", visa: "IRCC",
+    color: "#C8001A",
+    links: {
+      labour: "https://www.canada.ca/en/employment-social-development.html",
+      tax:    "https://www.canada.ca/en/revenue-agency.html",
+      visa:   "https://www.canada.ca/en/immigration-refugees-citizenship.html",
+    },
+    allLinks: {
+      labour: [
+        { label: "Employment and Social Development Canada (ESDC)", url: "https://www.canada.ca/en/employment-social-development.html" },
+        { label: "Canada Industrial Relations Board (CIRB)",        url: "https://www.cirb-ccri.gc.ca/en" },
+        { label: "劳动标准（Employment Standards）",                url: "https://www.canada.ca/en/employment-social-development/services/labour-standards.html" },
+        { label: "加拿大劳工法规综合入口",                          url: "https://laws-lois.justice.gc.ca/eng/acts/L-2/" },
+      ],
+      tax: [
+        { label: "Canada Revenue Agency (CRA)",                     url: "https://www.canada.ca/en/revenue-agency.html" },
+        { label: "在线报税与电子申报（NETFILE）",                   url: "https://www.canada.ca/en/revenue-agency/services/forms-publications/tax-packages-years/general-income-tax-benefit-package/5000-g.html" },
+        { label: "个人报税指南（CRA）",                             url: "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return.html" },
+        { label: "My Account – CRA 个人账户",                       url: "https://www.canada.ca/en/revenue-agency/services/e-services/e-services-individuals/account-individuals.html" },
+      ],
+      visa: [
+        { label: "Immigration, Refugees and Citizenship Canada (IRCC)", url: "https://www.canada.ca/en/immigration-refugees-citizenship.html" },
+        { label: "签证及移民申请入口",                              url: "https://www.canada.ca/en/services/immigration-citizenship.html" },
+        { label: "工作许可证（Work Permit）",                       url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit.html" },
+        { label: "IRCC 在线申请系统",                               url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/application.html" },
+      ],
+    },
+  },
+  "6": {
+    name: "日本", flag: "🇯🇵", code: "JP", labour: "厚生労働省", tax: "国税庁", visa: "外務省/入管庁",
+    color: "#BC002D",
+    links: {
+      labour: "https://www.mhlw.go.jp/index.html",
+      tax:    "https://www.nta.go.jp/english/taxes/individual/index.htm",
+      visa:   "https://www.mofa.go.jp/j_info/visit/visa/",
+    },
+    allLinks: {
+      labour: [
+        { label: "厚生労働省（MHLW）日文主页",                      url: "https://www.mhlw.go.jp/index.html" },
+        { label: "厚生労働省英文主页",                              url: "https://www.mhlw.go.jp/english/" },
+        { label: "劳动标准专页（Labour Standards）",                url: "https://www.mhlw.go.jp/stf/english/labour_standards_index.html" },
+        { label: "东京外国人雇用服务中心（中文）",                  url: "https://jsite.mhlw.go.jp/tokyo-foreigner/chinese/spec/spec_1c.html" },
+        { label: "法務省 – 外国人就业与在留资格",                   url: "https://www.moj.go.jp/ENGLISH/m_nyuukokukanri10_00011.html" },
+      ],
+      tax: [
+        { label: "国税庁（NTA）英文主页",                           url: "https://www.nta.go.jp/english/taxes/individual/index.htm" },
+        { label: "国税庁日文主页",                                  url: "https://www.nta.go.jp/" },
+        { label: "确定申告（年度个税申报）说明 – JETRO",            url: "https://www.jetro.go.jp/sc/invest/setting_up/section3/page7.html" },
+        { label: "个人住民税说明（地方税示例）",                    url: "https://www.city.matsudo.chiba.jp/InternationalPortal/zh-cn/forforeignresidents/shikenminnzei.html" },
+      ],
+      visa: [
+        { label: "外務省 – 签证总入口",                             url: "https://www.mofa.go.jp/j_info/visit/visa/" },
+        { label: "JAPAN eVISA（日本电子签证）",                     url: "https://www.mofa.go.jp/j_info/visit/visa/visaonline.html" },
+        { label: "日本驻华大使馆 – 签证说明",                       url: "https://www.cn.emb-japan.go.jp/consular.htm" },
+        { label: "就业/长期停留签证说明（驻华使馆）",               url: "https://www.cn.emb-japan.go.jp/itpr_zh/visa_shikaku.html" },
+        { label: "Visit Japan Web（入境手续在线系统）",             url: "https://services.digital.go.jp/zh-cmn-hant/visit-japan-web/" },
+        { label: "出入国在留管理庁（入管庁）",                      url: "https://www.moj.go.jp/isa/" },
+      ],
+    },
+  },
 };
 
 const QUERY_TYPES = {
@@ -369,7 +526,13 @@ const MOCK_RESULTS = {
   },
 };
 
-const QUERY_SYSTEM = `你是专业的全球HR合规查询助手。根据用户选择的司法区提供劳动法、税务或签证政策信息，输出结构化政策摘要及所需材料清单。仅提供公开政策信息，不提供法律意见。用中文回复，结尾注明"⚠️ 以上信息仅供参考，具体申报须由人工确认后自行提交。"`;
+const QUERY_SYSTEM = `你是专业的全球HR合规查询助手（Global HR Compliance Agent）。
+
+职责：根据用户选择的司法区与查询类型，提供准确的政策信息；回答时优先引用用户消息中提供的【官方参考网站列表】中的链接作为来源；输出结构化政策摘要，如有多个相关官网，分别引用并说明各网站用途。
+
+合规边界：仅提供公开政策信息，不作法律判断，所有结果必须附带"需人工最终确认"提示。
+
+请用中文回复，格式清晰，结尾注明"⚠️ 以上信息仅供参考，具体申报须由人工确认后自行提交，并以官网最新公告为准。"`;
 
 const REVIEW_SYSTEM = `你是专业的HR合规材料初审专家。仔细分析员工材料，对照该司法区官方要求，给出结构化初审报告。
 
@@ -453,11 +616,14 @@ function DocumentReview() {
     if (!files.length && !desc.trim()) { setError("请上传文件或填写材料说明"); return; }
     setError(""); setReviewing(true); setResult(null);
     try {
+      const siteList = (jurisdiction.allLinks?.[queryType.key] || []).map(l => `- ${l.label}：${l.url}`).join("\n");
       const base = `司法区：${jurisdiction.name} ${jurisdiction.flag}
 查询类型：${queryType.label}
 申请场景：${scenario||"未指定"}
 官方机构：${jurisdiction[queryType.key]}
-参考网站：${jurisdiction.links[queryType.key]}
+
+【官方参考网站列表】
+${siteList}
 ${desc.trim()?`\n材料说明：\n${desc}\n`:""}`;
       const imgs = files.filter(f=>f.type.startsWith("image/"));
       const others = files.filter(f=>!f.type.startsWith("image/"));
@@ -498,10 +664,14 @@ ${desc.trim()?`\n材料说明：\n${desc}\n`:""}`;
           <div style={{ fontSize:12, color:"var(--ink-light)", marginBottom:4 }}>
             {jurisdiction?.flag} {jurisdiction?.name} · {queryType?.icon} {queryType?.label} · {today}
           </div>
-          <a href={jurisdiction?.links[queryType?.key]} target="_blank" rel="noreferrer"
-            style={{ fontSize:11, color:"var(--blue)", fontFamily:"'IBM Plex Mono',monospace" }}>
-            ↗ {jurisdiction?.links[queryType?.key]}
-          </a>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginTop:4 }}>
+            {(jurisdiction?.allLinks?.[queryType?.key] || []).map((l,i) => (
+              <a key={i} href={l.url} target="_blank" rel="noreferrer"
+                style={{ fontSize:10, color:"var(--blue)", background:"rgba(42,106,184,0.07)", border:"1px solid rgba(42,106,184,0.2)", borderRadius:4, padding:"2px 7px", whiteSpace:"nowrap" }}>
+                ↗ {l.label}
+              </a>
+            ))}
+          </div>
         </div>
         <ScoreRing score={result.overallScore||0} />
       </div>
@@ -629,7 +799,7 @@ ${desc.trim()?`\n材料说明：\n${desc}\n`:""}`;
               <button key={key} onClick={()=>setJurisdiction({key,...reg})}
                 className={`jcard${jurisdiction?.key===key?" active":""}`}>
                 <div className="jcard-accent" style={{ background: jurisdiction?.key===key?reg.color:"var(--cream-line)" }} />
-                <span style={{ fontSize:24 }}>{reg.flag}</span>
+                <div style={{ fontSize:16, fontWeight:800, color: jurisdiction?.key===key?reg.color:"var(--ink-light)", letterSpacing:"0.05em", fontFamily:"'IBM Plex Mono',monospace" }}>{reg.code}</div>
                 <span style={{ fontSize:12, color:"var(--ink)", fontWeight:600 }}>{reg.name}</span>
               </button>
             ))}
@@ -753,7 +923,14 @@ function PolicyQuery() {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, system:QUERY_SYSTEM,
-          messages:[{ role:"user", content:`司法区：${jurisdiction.name}\n查询类型：${queryType.label}\n问题：${question}` }] })
+          messages:[{ role:"user", content:`司法区：${jurisdiction.name} ${jurisdiction.flag}
+查询类型：${queryType.label}
+问题：${question}
+
+【官方参考网站列表】
+${(jurisdiction.allLinks?.[queryType.key] || []).map(l => `- ${l.label}：${l.url}`).join("\n")}
+
+请基于以上官方网站信息回答，并在回答中引用相关官网链接。` }] })
       });
       const data = await res.json();
       setAiAnswer(data.content?.map(b=>b.text||"").join("\n")||"");
@@ -768,13 +945,13 @@ function PolicyQuery() {
       {/* Step 1 */}
       <div className="section">
         <div className="step-label"><span className="step-num">01</span> 选择司法区</div>
-        <div className="jgrid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+        <div className="jgrid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(155px, 1fr))", gap:10 }}>
           {Object.entries(REGISTRY).map(([key,reg]) => (
             <button key={key} onClick={()=>pickJ(key)}
               className={`jcard${jurisdiction?.key===key?" active":""}`}
               style={{ opacity:1, cursor:"pointer" }}>
               <div className="jcard-accent" style={{ background: jurisdiction?.key===key?reg.color:"var(--cream-line)" }} />
-              <span style={{ fontSize:26 }}>{reg.flag}</span>
+              <div style={{ fontSize:20, fontWeight:800, color: jurisdiction?.key===key?reg.color:"var(--ink-light)", letterSpacing:"0.05em", fontFamily:"'IBM Plex Mono',monospace" }}>{reg.code}</div>
               <span style={{ fontSize:12, color:"var(--ink)", fontWeight:600 }}>{reg.name}</span>
               <span style={{ fontSize:10, color:"var(--ink-faint)" }}>{reg.labour} · {reg.tax}</span>
             </button>
@@ -847,15 +1024,16 @@ function PolicyQuery() {
             <div className="card">
               <div className="card-header">🔗 来源与注意事项</div>
               <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11, color:"var(--ink-faint)", marginBottom:3 }}>官方机构</div>
-                <div style={{ fontSize:13, fontWeight:600, color:"var(--ink)" }}>{jurisdiction?.[queryType?.key]}</div>
-              </div>
-              <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11, color:"var(--ink-faint)", marginBottom:3 }}>官网链接</div>
-                <a href={jurisdiction?.links[queryType?.key]} target="_blank" rel="noreferrer"
-                  style={{ fontSize:12, color:"var(--blue)", wordBreak:"break-all" }}>
-                  {jurisdiction?.links[queryType?.key]}
-                </a>
+                <div style={{ fontSize:11, color:"var(--ink-faint)", marginBottom:6 }}>官方机构 · {jurisdiction?.[queryType?.key]}</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                  {(jurisdiction?.allLinks?.[queryType?.key] || []).map((l,i) => (
+                    <a key={i} href={l.url} target="_blank" rel="noreferrer"
+                      style={{ fontSize:11, color:"var(--blue)", display:"flex", alignItems:"flex-start", gap:5, lineHeight:1.5 }}>
+                      <span style={{ flexShrink:0, marginTop:1 }}>↗</span>
+                      <span style={{ wordBreak:"break-all" }}>{l.label}</span>
+                    </a>
+                  ))}
+                </div>
               </div>
               <div className="warn-box">⚠️ {result.notes}</div>
               <div style={{ fontSize:11, color:"var(--ink-faint)", marginTop:8 }}>更新时间：{today}</div>
@@ -886,9 +1064,9 @@ export default function App() {
         {/* Header */}
         <header className="scanline-wrap" style={{
           borderBottom:"2px solid var(--ink)", background:"var(--ink)",
-          padding:"0 28px", position:"sticky", top:0, zIndex:100
+          padding:"0 40px", position:"sticky", top:0, zIndex:100
         }}>
-          <div style={{ maxWidth:960, margin:"0 auto" }}>
+          <div style={{ maxWidth:"100%", margin:"0 auto" }}>
             {/* Top bar */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 0" }}>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
@@ -906,7 +1084,7 @@ export default function App() {
                 </div>
               </div>
               <div style={{ fontSize:11, color:"rgba(0,232,122,0.4)", letterSpacing:"0.1em" }}>
-                🇨🇳 · 🇭🇰 · 🇸🇬 · 🇺🇸 · 🇨🇦 · 🇯🇵
+                CN · HK · SG · US · CA · JP
               </div>
             </div>
 
@@ -940,7 +1118,7 @@ export default function App() {
         </header>
 
         {/* Main */}
-        <main style={{ maxWidth:960, margin:"0 auto", padding:"28px 24px 80px" }}>
+        <main style={{ maxWidth:"100%", margin:"0 auto", padding:"28px 40px 80px" }}>
 
           {/* Compliance banner */}
           {showBanner && (
@@ -961,15 +1139,16 @@ export default function App() {
         </main>
 
         {/* Footer rule */}
-        <div style={{ borderTop:"2px solid var(--ink)", background:"var(--cream-dark)", padding:"14px 28px",
+        <div style={{ borderTop:"2px solid var(--ink)", background:"var(--cream-dark)", padding:"14px 40px",
           display:"flex", justifyContent:"space-between", alignItems:"center",
           fontSize:10, color:"var(--ink-faint)", letterSpacing:"0.1em" }}>
-          <span>GLOBAL HR COMPLIANCE AGENT · 合规边界：仅查询，不提交，不登录</span>
+          <span>GLOBAL HR COMPLIANCE AGENT  ·  CN · HK · SG · US · CA · JP  ·  合规边界：仅查询，不提交，不登录</span>
           <span style={{ color:"var(--neon-dim)", fontWeight:600 }}>⚡ POWERED BY CLAUDE</span>
         </div>
       </div>
     </>
   );
 }
+
 
 
